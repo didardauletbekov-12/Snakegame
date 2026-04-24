@@ -1,56 +1,124 @@
-import pygame
 import random
-
-WIDTH, HEIGHT = 600, 400
+import pygame
 CELL = 20
 
 class SnakeGame:
-    def __init__(self):
-        self.snake = [(100, 100), (80, 100), (60, 100)]
+    def __init__(self, width=600, height=400):
+        self.W = width
+        self.H = height
+
+        self.snake = [(100,100), (80,100), (60,100)]
         self.direction = (CELL, 0)
-        self.food = self.spawn_food()
-        self.poison = self.spawn_food()
+        
+        self.obstacles = []
+        self.food = self.spawn()
+        self.poison = self.spawn()
+
+        self.power = None
+        self.power_spawn_time = 0
+        self.power_active = None
+        self.power_end = 0
 
         self.score = 0
         self.level = 1
         self.speed = 10
 
-    def spawn_food(self):
-        return (random.randrange(0, WIDTH, CELL),
-                random.randrange(0, HEIGHT, CELL))
+
+    def spawn(self):
+        while True:
+            x = random.randrange(0, self.W, CELL)
+            y = random.randrange(0, self.H, CELL)
+            if (x,y) not in self.snake and (x,y) not in self.obstacles:
+                return (x,y)
+
+    def spawn_power(self):
+        types = ["speed","slow","shield"]
+        self.power = (self.spawn(), random.choice(types))
+        self.power_spawn_time = pygame.time.get_ticks()
+
+    def spawn_obstacles(self):
+        self.obstacles = []
+        for _ in range(10):
+            pos = self.spawn()
+            self.obstacles.append(pos)
 
     def update(self):
-        head = self.snake[0]
-        new_head = (head[0] + self.direction[0],
-                    head[1] + self.direction[1])
+        now = pygame.time.get_ticks()
 
-        # стены
-        if new_head[0] < 0 or new_head[0] >= WIDTH or new_head[1] < 0 or new_head[1] >= HEIGHT:
+        # power spawn
+        if self.power is None:
+            if random.randint(0,100) < 2:
+                self.spawn_power()
+
+        # power timeout
+        if self.power and now - self.power_spawn_time > 8000:
+            self.power = None
+
+        # active power end
+        if self.power_active and now > self.power_end:
+            if self.power_active == "speed":
+                self.speed = 10 + self.level
+            elif self.power_active == "slow":
+                self.speed = max(5, 10 + self.level - 3)
+            self.power_active = None
+
+        head = (self.snake[0][0] + self.direction[0],
+                self.snake[0][1] + self.direction[1])
+
+        # wall
+        if head[0] < 0 or head[0] >= self.W or head[1] < 0 or head[1] >= self.H:
+            if self.power_active == "shield":
+                self.power_active = None
+            else:
+                return False
+
+        # self
+        if head in self.snake:
+            if self.power_active == "shield":
+                self.power_active = None
+            else:
+                return False
+
+        # obstacles
+        if head in self.obstacles:
             return False
 
-        # в себя
-        if new_head in self.snake:
-            return False
+        self.snake.insert(0, head)
 
-        self.snake.insert(0, new_head)
-
-        # обычная еда
-        if new_head == self.food:
+        # food
+        if head == self.food:
             self.score += 1
+            self.food = self.spawn()
 
             if self.score % 5 == 0:
                 self.level += 1
-                self.speed += 2
-
-            self.food = self.spawn_food()
+                self.speed += 1
+                if self.level >= 3:
+                    self.spawn_obstacles()
         else:
             self.snake.pop()
 
         # poison
-        if new_head == self.poison:
-            self.snake = self.snake[:-2]
+        if head == self.poison:
+            self.poison = self.spawn()
+            if len(self.snake) > 2:
+                self.snake.pop()
+                self.snake.pop()
             if len(self.snake) <= 1:
                 return False
-            self.poison = self.spawn_food()
+
+        # power pickup
+        if self.power and head == self.power[0]:
+            t = self.power[1]
+            self.power = None
+            self.power_active = t
+            self.power_end = now + 5000
+
+            if t == "speed":
+                self.speed += 5
+            elif t == "slow":
+                self.speed = max(3, self.speed - 5)
+            elif t == "shield":
+                pass
 
         return True

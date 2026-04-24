@@ -3,10 +3,11 @@ import psycopg2
 conn = psycopg2.connect(
     dbname="snake",
     user="postgres",
-    password="1234",
+    password="Sondy_667",
     host="localhost",
     port="5432"
 )
+
 cur = conn.cursor()
 
 def init_db():
@@ -28,6 +29,7 @@ def init_db():
     """)
     conn.commit()
 
+
 def save_game(username, score, level):
     cur.execute("SELECT id FROM players WHERE username=%s", (username,))
     res = cur.fetchone()
@@ -35,7 +37,10 @@ def save_game(username, score, level):
     if res:
         player_id = res[0]
     else:
-        cur.execute("INSERT INTO players (username) VALUES (%s) RETURNING id", (username,))
+        cur.execute(
+            "INSERT INTO players (username) VALUES (%s) RETURNING id",
+            (username,)
+        )
         player_id = cur.fetchone()[0]
 
     cur.execute("""
@@ -45,15 +50,6 @@ def save_game(username, score, level):
 
     conn.commit()
 
-def get_top():
-    cur.execute("""
-        SELECT username, score, level_reached, played_at
-        FROM game_sessions
-        JOIN players ON players.id = game_sessions.player_id
-        ORDER BY score DESC
-        LIMIT 10
-    """)
-    return cur.fetchall()
 
 def get_best(username):
     cur.execute("""
@@ -64,3 +60,14 @@ def get_best(username):
     """, (username,))
     res = cur.fetchone()
     return res[0] if res[0] else 0
+
+
+def get_top():
+    cur.execute("""
+        SELECT username, score, level_reached
+        FROM game_sessions
+        JOIN players ON players.id = game_sessions.player_id
+        ORDER BY score DESC
+        LIMIT 10
+    """)
+    return cur.fetchall()
