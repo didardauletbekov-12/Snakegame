@@ -4,6 +4,6 @@
         255,
         0
     ],
-    "grid": true,
+    "grid": false,
     "sound": true
 }
