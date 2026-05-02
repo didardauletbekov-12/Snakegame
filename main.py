@@ -6,20 +6,20 @@ pygame.init()
 
 WIDTH, HEIGHT = 600, 400
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Snake Game")
+pygame.display.set_caption("Snake Game from Didar")
 clock = pygame.time.Clock()
 
 font      = pygame.font.SysFont(None, 48)
 med_font  = pygame.font.SysFont(None, 36)
 small     = pygame.font.SysFont(None, 26)
 
-# ── settings ──────────────────────────────────────────────────────────────────
+#  settings 
 with open("settings.json") as f:
     settings = json.load(f)
 
 init_db()
 
-# ── Button helper ──────────────────────────────────────────────────────────────
+#  Button helper 
 class Button:
     def __init__(self, x, y, w, h, text,
                  color=(60, 60, 180), hover_color=(90, 90, 220), text_color=(255, 255, 255)):
@@ -43,28 +43,28 @@ class Button:
                 self.rect.collidepoint(event.pos))
 
 
-# ── Menu buttons ───────────────────────────────────────────────────────────────
+#  Menu buttons 
 BTN_W, BTN_H = 200, 44
 cx = WIDTH // 2 - BTN_W // 2
 
-btn_play        = Button(cx, 200, BTN_W, BTN_H, "▶  Play")
-btn_leaderboard = Button(cx, 255, BTN_W, BTN_H, "🏆  Leaderboard",  (60,130,60),  (90,170,90))
-btn_settings    = Button(cx, 310, BTN_W, BTN_H, "⚙  Settings",      (130,90,30),  (180,130,40))
-btn_quit        = Button(cx, 355, BTN_W, BTN_H, "✕  Quit",          (160,40,40),  (210,60,60))
+btn_play        = Button(cx, 200, BTN_W, BTN_H, "  Play")
+btn_leaderboard = Button(cx, 255, BTN_W, BTN_H, "  Leaderboard",  (60,130,60),  (90,170,90))
+btn_settings    = Button(cx, 310, BTN_W, BTN_H, "  Settings",      (130,90,30),  (180,130,40))
+btn_quit        = Button(cx, 355, BTN_W, BTN_H, "  Quit",          (160,40,40),  (210,60,60))
 
 # Game-Over buttons
-btn_retry = Button(cx, 230, BTN_W, BTN_H, "↺  Retry")
-btn_menu  = Button(cx, 285, BTN_W, BTN_H, "⌂  Main Menu", (80,80,80), (120,120,120))
+btn_retry = Button(cx, 230, BTN_W, BTN_H, "  Retry")
+btn_menu  = Button(cx, 285, BTN_W, BTN_H, "  Main Menu", (80,80,80), (120,120,120))
 
-# Leaderboard / Settings back
-btn_back = Button(cx, 340, BTN_W, BTN_H, "← Back", (80,80,80), (120,120,120))
+# Leaderboard or Settings back
+btn_back = Button(cx, 340, BTN_W, BTN_H, " Back", (80,80,80), (120,120,120))
 
 # Settings toggles
 btn_grid  = Button(cx, 160, BTN_W, BTN_H, "", (60,60,130), (90,90,180))
 btn_sound = Button(cx, 215, BTN_W, BTN_H, "", (60,60,130), (90,90,180))
-btn_save  = Button(cx, 300, BTN_W, BTN_H, "💾  Save & Back", (60,130,60), (90,170,90))
+btn_save  = Button(cx, 300, BTN_W, BTN_H, "  Save & Back", (60,130,60), (90,170,90))
 
-# ── State ─────────────────────────────────────────────────────────────────────
+# State 
 state    = "menu"
 username = ""
 game     = None
@@ -80,7 +80,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        # ── MENU ──────────────────────────────────────────────────────────────
+        #  MENU 
         if state == "menu":
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
@@ -108,7 +108,7 @@ while running:
             if btn_quit.clicked(event):
                 running = False
 
-        # ── GAME ──────────────────────────────────────────────────────────────
+        #  GAME 
         elif state == "game":
             if event.type == pygame.KEYDOWN:
                 d = game.direction
@@ -117,7 +117,7 @@ while running:
                 if event.key == pygame.K_LEFT  and d != (20, 0):  game.direction = (-20, 0)
                 if event.key == pygame.K_RIGHT and d != (-20,0):  game.direction = (20,  0)
 
-        # ── GAME OVER ─────────────────────────────────────────────────────────
+        #  GAME OVER 
         elif state == "game_over":
             if btn_retry.clicked(event):
                 best = get_best(username)
@@ -128,14 +128,14 @@ while running:
                 username = ""
                 game = None
 
-        # ── LEADERBOARD ───────────────────────────────────────────────────────
+        #  LEADERBOARD 
         elif state == "leaderboard":
             if btn_back.clicked(event) or (
                 event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
             ):
                 state = "menu"
 
-        # ── SETTINGS ──────────────────────────────────────────────────────────
+        #  SETTINGS 
         elif state == "settings":
             if btn_grid.clicked(event):
                 settings["grid"] = not settings["grid"]
@@ -148,11 +148,11 @@ while running:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 state = "menu"
 
-    # ── DRAW ══════════════════════════════════════════════════════════════════
+    #  DRAW 
 
     if state == "menu":
         # Title
-        title = font.render("🐍  SNAKE", True, (50, 220, 50))
+        title = font.render("  SNAKE", True, (50, 220, 50))
         screen.blit(title, title.get_rect(centerx=WIDTH//2, y=40))
 
         # Username box
@@ -193,7 +193,7 @@ while running:
 
         # poison (dark red)
         pygame.draw.rect(screen, (160, 0, 0), (*game.poison, 20, 20))
-        p_lbl = small.render("☠", True, (255, 100, 100))
+        p_lbl = small.render("P", True, (255, 100, 100))
         screen.blit(p_lbl, (game.poison[0]+2, game.poison[1]+1))
 
         # power-up
@@ -242,18 +242,18 @@ while running:
         screen.blit(title, title.get_rect(centerx=WIDTH//2, y=60))
 
         # Grid toggle button
-        btn_grid.text = f"Grid: {'ON ✔' if settings['grid'] else 'OFF ✘'}"
+        btn_grid.text = f"Grid: {'ON ' if settings['grid'] else 'OFF '}"
         btn_grid.draw(screen)
 
         # Sound toggle button
-        btn_sound.text = f"Sound: {'ON ✔' if settings['sound'] else 'OFF ✘'}"
+        btn_sound.text = f"Sound: {'ON ' if settings['sound'] else 'OFF '}"
         btn_sound.draw(screen)
 
         # Snake color preview
         color_rect = pygame.Rect(cx, 270, BTN_W, 24)
         pygame.draw.rect(screen, tuple(settings["snake_color"]), color_rect, border_radius=4)
         lbl = small.render("Snake color", True, (200, 200, 200))
-        screen.blit(lbl, lbl.get_rect(centerx=WIDTH//2, y=248))
+        screen.blit(lbl, lbl.get_rect(centerx=WIDTH//2 + 160, y=270))
 
         btn_save.draw(screen)
 
